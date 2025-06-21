@@ -21,6 +21,7 @@ import { logUnhandledError } from './utils/log.js';
 import { Tab } from './tab.js';
 import { outputFile  } from './config.js';
 
+import { popupAnalysis } from './detect-popups.js';
 import type { FullConfig } from './config.js';
 import type { Tool } from './tools/tool.js';
 import type { BrowserContextFactory, ClientInfo } from './browserContextFactory.js';
@@ -118,11 +119,148 @@ export class Context {
     return outputFile(this.config, this._clientInfo.rootPath, name);
   }
 
-  private _onPageCreated(page: playwright.Page) {
+  private async _onPageCreated(page: playwright.Page) {
+    // testDebug('Page created, checking for popup');
+
+    // try {
+    //   const isPopup = await this._handlePopup(page);
+    //   // If it was a popup, we don't want to add it to the tabs list
+    //   if (isPopup)
+    //     return;
+    // } catch (error) {
+    //   logUnhandledError(`Error handling popup: ${error}`);
+    //   // Continue with normal page creation even if popup handling fails
+    // }
+
     const tab = new Tab(this, page, tab => this._onPageClosed(tab));
     this._tabs.push(tab);
+
     if (!this._currentTab)
       this._currentTab = tab;
+  }
+
+  /**
+   * Handles popup windows by converting them to tabs
+   * Only converts popup windows, not new tabs
+   */
+  private async _handlePopup(popupPage: playwright.Page): Promise<boolean> {
+    try {
+      // Wait to ensure that the `context.on("page")` event has fired
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Check if this is actually a popup window (not just a new tab)
+      const isPopupWindow = await this._isPopupWindow(popupPage);
+      if (!isPopupWindow) {
+        testDebug('Not a popup window, returning');
+        // If it's not a popup window, we don't need to do anything, since
+        // the context.on("page") event will handle it.
+        return false;
+      }
+
+      testDebug('Is a popup window, getting URL');
+
+      await popupPage.waitForLoadState('domcontentloaded');
+
+      // Some popups take a while to fully resolve a URL
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
+      let popupUrl: string | undefined;
+      let attempts = 0;
+
+      while (!popupUrl && attempts < 3) {
+        try {
+          popupUrl = popupPage.url();
+
+          if (popupUrl === 'about:blank')
+            popupUrl = undefined;
+
+        } catch (error) {
+          testDebug('Failed to get popup URL, retrying');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts++;
+      }
+
+      if (!popupUrl) {
+        testDebug('Failed to get popup URL, closing popup and returning');
+        await popupPage.close();
+        return true;
+      }
+
+      // Only convert if we have a valid URL
+      if (
+        !popupUrl ||
+        popupUrl === 'about:blank' ||
+        popupUrl.startsWith('data:')
+      ) {
+        // For data URLs or blank pages, just close the popup
+        await popupPage.close();
+        return true;
+      }
+
+      // Create a new page directly and navigate to the popup URL
+      const { browserContext } = await this._ensureBrowserContext();
+      const newPage = await browserContext.newPage();
+
+      try {
+        await newPage.goto(popupUrl, {
+          waitUntil: 'domcontentloaded',
+          timeout: 10000,
+        });
+      } catch (navigationError) {
+        // If navigation fails, just close the popup and keep the new page
+        // The new page will remain open but empty, which is better than losing it
+        logUnhandledError(`Navigation to popup URL failed: ${navigationError}`);
+      }
+
+      // Close the popup
+      await popupPage.close();
+    } catch (error) {
+      // If conversion fails, just close the popup
+      try {
+        await popupPage.close();
+      } catch (closeError) {
+        // Ignore close errors
+        logUnhandledError(`Error closing popup: ${closeError}`);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Checks if a page is a popup window (not just a new tab)
+   */
+  private async _isPopupWindow(page: playwright.Page): Promise<boolean> {
+    try {
+      // Wait for the page to be ready, but with a timeout
+      await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+      // Use a timeout for the popup analysis to prevent hanging
+      const analysis = await Promise.race([
+        popupAnalysis(page),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Popup analysis timeout')), 3000)
+        ),
+      ]);
+
+      testDebug(`Popup analysis: ${JSON.stringify(analysis)}`);
+
+      if (analysis.isPopup) {
+        testDebug(`Popup detected with ${analysis.confidence}% confidence`);
+        testDebug(`Reasons: ${analysis.reasons.join(', ')}`);
+      }
+
+      return analysis.isPopup;
+    } catch (error) {
+      // Check if it's a navigation-related error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logUnhandledError(`Error checking if page is a popup window: ${errorMessage}`);
+
+      // If we can't determine, assume it's not a popup window
+      return false;
+    }
   }
 
   private _onPageClosed(tab: Tab) {
@@ -208,7 +346,7 @@ export class Context {
     if (this.sessionLog)
       await InputRecorder.create(this, browserContext);
     for (const page of browserContext.pages())
-      this._onPageCreated(page);
+      void this._onPageCreated(page);
     browserContext.on('page', page => this._onPageCreated(page));
     if (this.config.saveTrace) {
       await browserContext.tracing.start({

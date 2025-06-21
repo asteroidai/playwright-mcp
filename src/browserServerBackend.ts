@@ -85,4 +85,11 @@ export class BrowserServerBackend implements ServerBackend {
   serverClosed() {
     void this._context?.dispose().catch(logUnhandledError);
   }
+
+  async getContext(): Promise<Context> {
+    if (!this._context)
+      throw new Error('Context not initialized');
+
+    return this._context;
+  }
 }

@@ -47,16 +47,16 @@ export type ServerBackendFactory = {
 };
 
 export async function connect(factory: ServerBackendFactory, transport: Transport, runHeartbeat: boolean) {
-  const server = createServer(factory.name, factory.version, factory.create(), runHeartbeat);
+  const server = await createServer(factory.name, factory.version, factory.create(), runHeartbeat);
   await server.connect(transport);
 }
 
 export async function wrapInProcess(backend: ServerBackend): Promise<Transport> {
-  const server = createServer('Internal', '0.0.0', backend, false);
+  const server = await createServer('Internal', '0.0.0', backend, false);
   return new InProcessTransport(server);
 }
 
-export function createServer(name: string, version: string, backend: ServerBackend, runHeartbeat: boolean): Server {
+export async function createServer(name: string, version: string, backend: ServerBackend, runHeartbeat: boolean): Promise<Server> {
   let initializedPromiseResolve = () => {};
   const initializedPromise = new Promise<void>(resolve => initializedPromiseResolve = resolve);
   const server = new Server({ name, version }, {
@@ -92,21 +92,42 @@ export function createServer(name: string, version: string, backend: ServerBacke
     }
   });
   addServerListener(server, 'initialized', async () => {
-    try {
-      const capabilities = server.getClientCapabilities();
-      let clientRoots: Root[] = [];
-      if (capabilities?.roots) {
-        const { roots } = await server.listRoots(undefined, { timeout: 2_000 }).catch(() => ({ roots: [] }));
-        clientRoots = roots;
-      }
-      const clientVersion = server.getClientVersion() ?? { name: 'unknown', version: 'unknown' };
-      await backend.initialize?.(server, clientVersion, clientRoots);
-      initializedPromiseResolve();
-    } catch (e) {
-      errorsDebug(e);
-    }
+    // Intentionally don't call initialize here, since we want the context at instantiation time.
+    // We instead do this in the createServer function.
+
+    // try {
+    //   const capabilities = server.getClientCapabilities();
+    //   let clientRoots: Root[] = [];
+    //   if (capabilities?.roots) {
+    //     const { roots } = await server.listRoots(undefined, { timeout: 2_000 }).catch(() => ({ roots: [] }));
+    //     clientRoots = roots;
+    //   }
+    //   const clientVersion = server.getClientVersion() ?? { name: 'unknown', version: 'unknown' };
+    //   await backend.initialize?.(server, clientVersion, clientRoots);
+    //   initializedPromiseResolve();
+    // } catch (e) {
+    //   errorsDebug(e);
+    // }
   });
-  addServerListener(server, 'close', () => backend.serverClosed?.(server));
+  addServerListener(server, 'close', () => {
+    // Intentionally don't call serverClosed here, since we want to keep the context alive
+    // for the next connection.
+    // backend.serverClosed?.(server);
+  });
+
+  try {
+    const capabilities = server.getClientCapabilities();
+    let clientRoots: Root[] = [];
+    if (capabilities?.roots) {
+      const { roots } = await server.listRoots(undefined, { timeout: 2_000 }).catch(() => ({ roots: [] }));
+      clientRoots = roots;
+    }
+    const clientVersion = server.getClientVersion() ?? { name: 'unknown', version: 'unknown' };
+    await backend.initialize?.(server, clientVersion, clientRoots);
+    initializedPromiseResolve();
+  } catch (e) {
+    errorsDebug(e);
+  }
   return server;
 }
 
