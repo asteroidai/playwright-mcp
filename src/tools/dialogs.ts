@@ -36,19 +36,11 @@ const handleDialog: ToolFactory = captureSnapshot => defineTool({
     if (!dialogState)
       throw new Error('No dialog visible');
 
-    let attempt = 0;
-    while (attempt < 3) {
-      try {
-        if (params.accept) await dialogState.dialog.accept(params.promptText);
-        else await dialogState.dialog.dismiss();
-        break;
-      } catch (error) {
-        console.error(error);
-        attempt++;
-      }
-    }
+    if (params.accept)
+      await dialogState.dialog.accept(params.promptText);
+    else
+      await dialogState.dialog.dismiss();
 
-    // Always clear the dialog state, even if the dialog is not handled.
     context.clearModalState(dialogState);
 
     const code = [
