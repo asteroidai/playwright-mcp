@@ -187,7 +187,7 @@ class TabShareExtension {
           const existed = this._pendingTabSelection.delete(tabId);
           if (existed) {
             pending.connection.close('Tab has been inactive for 5 seconds');
-            chrome.tabs.sendMessage(tabId, { type: 'connectionTimeout' });
+            void chrome.tabs.sendMessage(tabId, { type: 'connectionTimeout' });
           }
         }, 5000);
         return;

@@ -196,9 +196,6 @@ Playwright MCP server supports following arguments. They can be provided in the 
   --config <path>              path to the configuration file.
   --device <device>            device to emulate, for example: "iPhone 15"
   --executable-path <path>     path to the browser executable.
-  --extension                  Connect to a running browser instance
-                               (Edge/Chrome only). Requires the "Playwright MCP
-                               Bridge" browser extension to be installed.
   --headless                   run browser in headless mode, headed by default
   --host <host>                host to bind server to. Default is localhost. Use
                                0.0.0.0 to bind to all interfaces.
@@ -215,8 +212,6 @@ Playwright MCP server supports following arguments. They can be provided in the 
                                example ".com,chromium.org,.domain.com"
   --proxy-server <proxy>       specify proxy server, for example
                                "http://myproxy:3128" or "socks5://myproxy:8080"
-  --save-session               Whether to save the Playwright MCP session into
-                               the output directory.
   --save-trace                 Whether to save the Playwright Trace of the
                                session into the output directory.
   --storage-state <path>       path to the storage state file for isolated
@@ -494,15 +489,6 @@ http.createServer(async (req, res) => {
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
-- **browser_fill_form**
-  - Title: Fill form
-  - Description: Fill multiple form fields
-  - Parameters:
-    - `fields` (array): Fields to fill in
-  - Read-only: **false**
-
-<!-- NOTE: This has been generated via update-readme.js -->
-
 - **browser_handle_dialog**
   - Title: Handle a dialog
   - Description: Handle a dialog
@@ -535,6 +521,14 @@ http.createServer(async (req, res) => {
 - **browser_navigate_back**
   - Title: Go back
   - Description: Go back to the previous page
+  - Parameters: None
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_navigate_forward**
+  - Title: Go forward
+  - Description: Go forward to the next page
   - Parameters: None
   - Read-only: **true**
 
@@ -590,7 +584,7 @@ http.createServer(async (req, res) => {
   - Title: Take a screenshot
   - Description: Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.
   - Parameters:
-    - `type` (string, optional): Image format for the screenshot. Default is png.
+    - `raw` (boolean, optional): Whether to return without compression (in PNG format). Default is false, which returns a JPEG image.
     - `filename` (string, optional): File name to save the screenshot to. Defaults to `page-{timestamp}.{png|jpeg}` if not specified.
     - `element` (string, optional): Human-readable element description used to obtain permission to screenshot the element. If not provided, the screenshot will be taken of viewport. If element is provided, ref must be provided too.
     - `ref` (string, optional): Exact target element reference from the page snapshot. If not provided, the screenshot will be taken of viewport. If ref is provided, element must be provided too.
@@ -628,13 +622,38 @@ http.createServer(async (req, res) => {
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
-- **browser_tabs**
-  - Title: Manage tabs
-  - Description: List, create, close, or select a browser tab.
+- **browser_tab_close**
+  - Title: Close a tab
+  - Description: Close a tab
   - Parameters:
-    - `action` (string): Operation to perform
-    - `index` (number, optional): Tab index, used for close/select. If omitted for close, current tab is closed.
+    - `index` (number, optional): The index of the tab to close. Closes current tab if not provided.
   - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_tab_list**
+  - Title: List tabs
+  - Description: List browser tabs
+  - Parameters: None
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_tab_new**
+  - Title: Open a new tab
+  - Description: Open a new tab
+  - Parameters:
+    - `url` (string, optional): The URL to navigate to in the new tab. If not provided, the new tab will be blank.
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_tab_select**
+  - Title: Select a tab
+  - Description: Select a tab by index
+  - Parameters:
+    - `index` (number): The index of the tab to select
+  - Read-only: **true**
 
 </details>
 
