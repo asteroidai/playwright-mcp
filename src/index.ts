@@ -37,7 +37,8 @@ export async function createConnection(userConfig: Config = {}, contextGetter?: 
 
   const backend = new BrowserServerBackend(config, factory);
 
-  const server = mcpServer.createServer('Playwright', packageJSON.version, backend, false);
+  const server = await mcpServer.createServer('Playwright', packageJSON.version, backend, false);
+
   return {
     server,
     context: await backend.getContext()
