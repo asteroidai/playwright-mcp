@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import debug from 'debug';
 import * as playwright from 'playwright';
 
-import { logUnhandledError } from './utils/log.js';
+import { logUnhandledError, testDebug } from './utils/log.js';
 import { Tab } from './tab.js';
 import { outputFile  } from './config.js';
 
@@ -27,8 +26,6 @@ import type { Tool } from './tools/tool.js';
 import type { BrowserContextFactory, ClientInfo } from './browserContextFactory.js';
 import type * as actions from './actions.js';
 import type { SessionLog } from './sessionLog.js';
-
-const testDebug = debug('pw:mcp:test');
 
 type ContextOptions = {
   tools: Tool[];

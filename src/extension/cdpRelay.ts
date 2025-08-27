@@ -24,10 +24,9 @@
 
 import { spawn } from 'child_process';
 import http from 'http';
-import debug from 'debug';
 import { WebSocket, WebSocketServer } from 'ws';
 import { httpAddressToString } from '../mcp/http.js';
-import { logUnhandledError } from '../utils/log.js';
+import { logUnhandledError, relayDebug as debugLogger } from '../utils/log.js';
 import { ManualPromise } from '../mcp/manualPromise.js';
 import * as protocol from './protocol.js';
 
@@ -37,8 +36,6 @@ import type { ExtensionCommand, ExtensionEvents } from './protocol.js';
 
 // @ts-ignore
 const { registry } = await import('playwright-core/lib/server/registry/index');
-
-const debugLogger = debug('pw:mcp:relay');
 
 type CDPCommand = {
   id: number;

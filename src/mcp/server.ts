@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import debug from 'debug';
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { httpAddressToString, installHttpTransport, startHttpServer } from './http.js';
 import { InProcessTransport } from './inProcessTransport.js';
+import { serverDebug, logUnhandledError as errorsDebug, logUnhandledError } from '../utils/log.js';
 
 import type { Tool, CallToolResult, CallToolRequest, Root } from '@modelcontextprotocol/sdk/types.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 export type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 export type { Tool, CallToolResult, CallToolRequest, Root } from '@modelcontextprotocol/sdk/types.js';
 
-const serverDebug = debug('pw:mcp:server');
-const errorsDebug = debug('pw:mcp:errors');
 
 export type ClientVersion = { name: string, version: string };
 
@@ -83,8 +81,16 @@ export async function createServer(name: string, version: string, backend: Serve
     }
 
     try {
-      return await backend.callTool(request.params.name, request.params.arguments || {});
+      const result = await backend.callTool(request.params.name, request.params.arguments || {});
+      serverDebug('callToolResult', result);
+
+      if (result.isError)
+        logUnhandledError(new Error('callTool error'), result);
+
+      return result;
     } catch (error) {
+      logUnhandledError(error);
+
       return {
         content: [{ type: 'text', text: '### Result\n' + String(error) }],
         isError: true,

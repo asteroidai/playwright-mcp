@@ -14,12 +14,62 @@
  * limitations under the License.
  */
 
+import { context, SpanStatusCode, trace } from '@opentelemetry/api';
 import debug from 'debug';
 
 const errorsDebug = debug('pw:mcp:errors');
 
-export function logUnhandledError(error: unknown) {
-  errorsDebug(error);
+export function logUnhandledError(err: Error | unknown, ...args: any[]) {
+  const error = err instanceof Error ? err : new Error(String(err));
+
+  trace.getSpan(context.active())?.addEvent('error', {
+    'error': error.message,
+    'args': args,
+  } as any).setAttributes({
+    'error': error.message,
+    'args': args,
+  }).setStatus({
+    code: SpanStatusCode.ERROR,
+    message: error.message,
+  }).recordException(error);
+
+  errorsDebug(error, ...args);
 }
 
-export const testDebug = debug('pw:mcp:test');
+const testDebugger = debug('pw:mcp:test');
+
+export function testDebug(message: string, ...args: any[]) {
+  trace.getSpan(context.active())?.addEvent('debug', {
+    'message': message,
+    'args': args,
+  } as any).setAttributes({
+    'message': message,
+    'args': args,
+  });
+
+  testDebugger(message, ...args);
+}
+
+const relayDebugger = debug('pw:mcp:relay');
+
+export function relayDebug(message: string, ...args: any[]) {
+  trace.getSpan(context.active())?.addEvent('relay', {
+    'message': message,
+    'args': args,
+  } as any).setAttributes({
+    'message': message,
+    'args': args,
+  });
+
+  relayDebugger(message, ...args);
+}
+
+const serverDebugger = debug('pw:mcp:server');
+
+export function serverDebug(event: string, ...args: any[]) {
+  trace.getSpan(context.active())?.addEvent(`server:${event}`, {
+    'args': JSON.stringify(args),
+  } as any);
+
+  serverDebugger(event, ...args);
+}
