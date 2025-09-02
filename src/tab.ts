@@ -117,7 +117,8 @@ export class Tab extends EventEmitter<TabEventsInterface> {
       outputFile: await this.context.outputFile(download.suggestedFilename())
     };
     this._downloads.push(entry);
-    await download.saveAs(entry.outputFile);
+    // Downloads don't work via CDP, so we just mark it as finished
+    // await download.saveAs(entry.outputFile);
     entry.finished = true;
   }
 
