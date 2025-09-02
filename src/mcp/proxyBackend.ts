@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import debug from 'debug';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { ListRootsRequestSchema, PingRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+
+import { logUnhandledError as errorsDebug } from '../utils/log.js';
 
 import type { ServerBackend, ClientVersion, Root, Server } from './server.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
@@ -30,8 +31,6 @@ export type MCPProvider = {
   description: string;
   connect(): Promise<Transport>;
 };
-
-const errorsDebug = debug('pw:mcp:errors');
 
 export class ProxyBackend implements ServerBackend {
   private _mcpProviders: MCPProvider[];

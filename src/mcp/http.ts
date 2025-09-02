@@ -19,15 +19,14 @@ import net from 'net';
 import http from 'http';
 import crypto from 'crypto';
 
-import debug from 'debug';
 
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import * as mcpServer from './server.js';
 
+import { testDebug } from '../utils/log.js';
 import type { ServerBackendFactory } from './server.js';
 
-const testDebug = debug('pw:mcp:test');
 
 export async function startHttpServer(config: { host?: string, port?: number }, abortSignal?: AbortSignal): Promise<http.Server> {
   const { host, port } = config;

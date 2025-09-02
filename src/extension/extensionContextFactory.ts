@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import debug from 'debug';
 import * as playwright from 'playwright';
 import { startHttpServer } from '../mcp/http.js';
 import { CDPRelayServer } from './cdpRelay.js';
+import { relayDebug as debugLogger } from '../utils/log.js';
 
 import type { BrowserContextFactory, ClientInfo } from '../browserContextFactory.js';
 
-const debugLogger = debug('pw:mcp:relay');
 
 export class ExtensionContextFactory implements BrowserContextFactory {
   private _browserChannel: string;

@@ -20,15 +20,26 @@ import { contextFactory } from './browserContextFactory.js';
 import * as mcpServer from './mcp/server.js';
 import { packageJSON } from './utils/package.js';
 
+import { Context } from './context.js';
 import type { Config } from '../config.js';
 import type { BrowserContext } from 'playwright';
 import type { BrowserContextFactory } from './browserContextFactory.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
-export async function createConnection(userConfig: Config = {}, contextGetter?: () => Promise<BrowserContext>): Promise<Server> {
+export interface Connection {
+  server: Server;
+  context: Context;
+}
+
+export async function createConnection(userConfig: Config = {}, contextGetter?: () => Promise<BrowserContext>): Promise<Connection> {
   const config = await resolveConfig(userConfig);
   const factory = contextGetter ? new SimpleBrowserContextFactory(contextGetter) : contextFactory(config);
-  return mcpServer.createServer('Playwright', packageJSON.version, new BrowserServerBackend(config, factory), false);
+  const backend = new BrowserServerBackend(config, factory);
+  const server = await mcpServer.createServer('Playwright', packageJSON.version, backend, false);
+  return {
+    server,
+    context: await backend.getContext()
+  };
 }
 
 class SimpleBrowserContextFactory implements BrowserContextFactory {
