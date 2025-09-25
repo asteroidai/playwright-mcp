@@ -76,7 +76,7 @@ For more information, see the [Codex MCP documentation](https://github.com/opena
 
 #### Click the button to install:
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3D%3D)
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor">](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3D%3D)
 
 #### Or install manually:
 
@@ -180,52 +180,90 @@ Playwright MCP server supports following arguments. They can be provided in the 
 
 ```
 > npx @playwright/mcp@latest --help
-  --allowed-origins <origins>  semicolon-separated list of origins to allow the
-                               browser to request. Default is to allow all.
-  --blocked-origins <origins>  semicolon-separated list of origins to block the
-                               browser from requesting. Blocklist is evaluated
-                               before allowlist. If used without the allowlist,
-                               requests not matching the blocklist are still
-                               allowed.
-  --block-service-workers      block service workers
-  --browser <browser>          browser or chrome channel to use, possible
-                               values: chrome, firefox, webkit, msedge.
-  --caps <caps>                comma-separated list of additional capabilities
-                               to enable, possible values: vision, pdf.
-  --cdp-endpoint <endpoint>    CDP endpoint to connect to.
-  --config <path>              path to the configuration file.
-  --device <device>            device to emulate, for example: "iPhone 15"
-  --executable-path <path>     path to the browser executable.
-  --extension                  Connect to a running browser instance
-                               (Edge/Chrome only). Requires the "Playwright MCP
-                               Bridge" browser extension to be installed.
-  --headless                   run browser in headless mode, headed by default
-  --host <host>                host to bind server to. Default is localhost. Use
-                               0.0.0.0 to bind to all interfaces.
-  --ignore-https-errors        ignore https errors
-  --isolated                   keep the browser profile in memory, do not save
-                               it to disk.
-  --image-responses <mode>     whether to send image responses to the client.
-                               Can be "allow" or "omit", Defaults to "allow".
-  --no-sandbox                 disable the sandbox for all process types that
-                               are normally sandboxed.
-  --output-dir <path>          path to the directory for output files.
-  --port <port>                port to listen on for SSE transport.
-  --proxy-bypass <bypass>      comma-separated domains to bypass proxy, for
-                               example ".com,chromium.org,.domain.com"
-  --proxy-server <proxy>       specify proxy server, for example
-                               "http://myproxy:3128" or "socks5://myproxy:8080"
-  --save-session               Whether to save the Playwright MCP session into
-                               the output directory.
-  --save-trace                 Whether to save the Playwright Trace of the
-                               session into the output directory.
-  --storage-state <path>       path to the storage state file for isolated
-                               sessions.
-  --user-agent <ua string>     specify user agent string
-  --user-data-dir <path>       path to the user data directory. If not
-                               specified, a temporary directory will be created.
-  --viewport-size <size>       specify browser viewport size in pixels, for
-                               example "1280, 720"
+  --allowed-hosts <hosts...>            comma-separated list of hosts this
+                                        server is allowed to serve from.
+                                        Defaults to the host the server is bound
+                                        to.
+  --allowed-origins <origins>           semicolon-separated list of origins to
+                                        allow the browser to request. Default is
+                                        to allow all.
+  --blocked-origins <origins>           semicolon-separated list of origins to
+                                        block the browser from requesting.
+                                        Blocklist is evaluated before allowlist.
+                                        If used without the allowlist, requests
+                                        not matching the blocklist are still
+                                        allowed.
+  --block-service-workers               block service workers
+  --browser <browser>                   browser or chrome channel to use,
+                                        possible values: chrome, firefox,
+                                        webkit, msedge.
+  --caps <caps>                         comma-separated list of additional
+                                        capabilities to enable, possible values:
+                                        vision, pdf.
+  --cdp-endpoint <endpoint>             CDP endpoint to connect to.
+  --cdp-header <headers...>             CDP headers to send with the connect
+                                        request, multiple can be specified.
+  --config <path>                       path to the configuration file.
+  --device <device>                     device to emulate, for example: "iPhone
+                                        15"
+  --executable-path <path>              path to the browser executable.
+  --extension                           Connect to a running browser instance
+                                        (Edge/Chrome only). Requires the
+                                        "Playwright MCP Bridge" browser
+                                        extension to be installed.
+  --grant-permissions <permissions...>  List of permissions to grant to the
+                                        browser context, for example
+                                        "geolocation", "clipboard-read",
+                                        "clipboard-write".
+  --headless                            run browser in headless mode, headed by
+                                        default
+  --host <host>                         host to bind server to. Default is
+                                        localhost. Use 0.0.0.0 to bind to all
+                                        interfaces.
+  --ignore-https-errors                 ignore https errors
+  --init-script <path...>               path to JavaScript file to add as an
+                                        initialization script. The script will
+                                        be evaluated in every page before any of
+                                        the page's scripts. Can be specified
+                                        multiple times.
+  --isolated                            keep the browser profile in memory, do
+                                        not save it to disk.
+  --image-responses <mode>              whether to send image responses to the
+                                        client. Can be "allow" or "omit",
+                                        Defaults to "allow".
+  --no-sandbox                          disable the sandbox for all process
+                                        types that are normally sandboxed.
+  --output-dir <path>                   path to the directory for output files.
+  --port <port>                         port to listen on for SSE transport.
+  --proxy-bypass <bypass>               comma-separated domains to bypass proxy,
+                                        for example
+                                        ".com,chromium.org,.domain.com"
+  --proxy-server <proxy>                specify proxy server, for example
+                                        "http://myproxy:3128" or
+                                        "socks5://myproxy:8080"
+  --save-session                        Whether to save the Playwright MCP
+                                        session into the output directory.
+  --save-trace                          Whether to save the Playwright Trace of
+                                        the session into the output directory.
+  --save-video <size>                   Whether to save the video of the session
+                                        into the output directory. For example
+                                        "--save-video=800x600"
+  --secrets <path>                      path to a file containing secrets in the
+                                        dotenv format
+  --shared-browser-context              reuse the same browser context between
+                                        all connected HTTP clients.
+  --storage-state <path>                path to the storage state file for
+                                        isolated sessions.
+  --timeout-action <timeout>            specify action timeout in milliseconds,
+                                        defaults to 5000ms
+  --timeout-navigation <timeout>        specify navigation timeout in
+                                        milliseconds, defaults to 60000ms
+  --user-agent <ua string>              specify user agent string
+  --user-data-dir <path>                path to the user data directory. If not
+                                        specified, a temporary directory will be
+                                        created.
+  --viewport-size <size>                specify browser viewport size in pixels,
+                                        for example "1280x720"
 ```
 
 <!--- End of options generated section -->
@@ -396,6 +434,19 @@ And then in MCP client config, set the `url` to the HTTP endpoint:
 }
 ```
 
+Or If you prefer to run the container as a long-lived service instead of letting the MCP client spawn it, use:
+
+```
+docker run -d -i --rm --init --pull=always \
+  --entrypoint node \
+  --name playwright \
+  -p 8931:8931 \
+  mcr.microsoft.com/playwright/mcp \
+  cli.js --headless --browser chromium --no-sandbox --port 8931
+```
+
+The server will listen on host port **8931** and can be reached by any MCP client.  
+
 You can build the Docker image yourself.
 
 ```
@@ -418,7 +469,7 @@ http.createServer(async (req, res) => {
   // Creates a headless Playwright MCP server with SSE transport
   const connection = await createConnection({ browser: { launchOptions: { headless: true } } });
   const transport = new SSEServerTransport('/messages', res);
-  await connection.sever.connect(transport);
+  await connection.connect(transport);
 
   // ...
 });
@@ -442,6 +493,7 @@ http.createServer(async (req, res) => {
     - `ref` (string): Exact target element reference from the page snapshot
     - `doubleClick` (boolean, optional): Whether to perform a double click instead of a single click
     - `button` (string, optional): Button to click, defaults to left
+    - `modifiers` (array, optional): Modifier keys to press
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -489,7 +541,7 @@ http.createServer(async (req, res) => {
   - Title: Upload files
   - Description: Upload one or multiple files
   - Parameters:
-    - `paths` (array): The absolute paths to the files to upload. Can be a single file or multiple files.
+    - `paths` (array, optional): The absolute paths to the files to upload. Can be single file or multiple files. If omitted, file chooser is cancelled.
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -708,46 +760,25 @@ http.createServer(async (req, res) => {
 <details>
 <summary><b>Verify (opt-in via --caps=verify)</b></summary>
 
+</details>
+
+<details>
+<summary><b>Tracing (opt-in via --caps=tracing)</b></summary>
+
 <!-- NOTE: This has been generated via update-readme.js -->
 
-- **browser_verify_element_visible**
-  - Title: Verify element visible
-  - Description: Verify element is visible on the page
-  - Parameters:
-    - `role` (string): ROLE of the element. Can be found in the snapshot like this: `- {ROLE} "Accessible Name":`
-    - `accessibleName` (string): ACCESSIBLE_NAME of the element. Can be found in the snapshot like this: `- role "{ACCESSIBLE_NAME}"`
+- **browser_start_tracing**
+  - Title: Start tracing
+  - Description: Start trace recording
+  - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
-- **browser_verify_list_visible**
-  - Title: Verify list visible
-  - Description: Verify list is visible on the page
-  - Parameters:
-    - `element` (string): Human-readable list description
-    - `ref` (string): Exact target element reference that points to the list
-    - `items` (array): Items to verify
-  - Read-only: **true**
-
-<!-- NOTE: This has been generated via update-readme.js -->
-
-- **browser_verify_text_visible**
-  - Title: Verify text visible
-  - Description: Verify text is visible on the page. Prefer browser_verify_element_visible if possible.
-  - Parameters:
-    - `text` (string): TEXT to verify. Can be found in the snapshot like this: `- role "Accessible Name": {TEXT}` or like this: `- text: {TEXT}`
-  - Read-only: **true**
-
-<!-- NOTE: This has been generated via update-readme.js -->
-
-- **browser_verify_value**
-  - Title: Verify value
-  - Description: Verify element value
-  - Parameters:
-    - `type` (string): Type of the element
-    - `element` (string): Human-readable element description
-    - `ref` (string): Exact target element reference that points to the element
-    - `value` (string): Value to verify. For checkbox, use "true" or "false".
+- **browser_stop_tracing**
+  - Title: Stop tracing
+  - Description: Stop trace recording
+  - Parameters: None
   - Read-only: **true**
 
 </details>

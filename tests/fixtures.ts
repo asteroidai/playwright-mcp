@@ -15,7 +15,6 @@
  */
 
 import fs from 'fs';
-import url from 'url';
 import path from 'path';
 import { chromium } from 'playwright';
 
@@ -23,7 +22,7 @@ import { test as baseTest, expect as baseExpect } from '@playwright/test';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { ListRootsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { TestServer } from './testserver/index.ts';
+import { TestServer } from './testserver/index';
 
 import type { Config } from '../config';
 import type { BrowserContext } from 'playwright';
@@ -47,6 +46,7 @@ export type StartClient = (options?: {
   config?: Config,
   roots?: { name: string, uri: string }[],
   rootsResponseDelay?: number,
+  extensionToken?: string,
 }) => Promise<{ client: Client, stderr: () => string }>;
 
 
@@ -103,7 +103,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
           };
         });
       }
-      const { transport, stderr } = await createTransport(args, mcpMode, testInfo.outputPath('ms-playwright'));
+      const { transport, stderr } = await createTransport(args, mcpMode, testInfo.outputPath('ms-playwright'), options?.extensionToken);
       let stderrBuffer = '';
       stderr?.on('data', data => {
         if (process.env.PWMCP_DEBUG)
@@ -182,12 +182,10 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
   },
 });
 
-async function createTransport(args: string[], mcpMode: TestOptions['mcpMode'], profilesDir: string): Promise<{
+async function createTransport(args: string[], mcpMode: TestOptions['mcpMode'], profilesDir: string, extensionToken?: string): Promise<{
   transport: Transport,
   stderr: Stream | null,
 }> {
-  // NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
-  const __filename = url.fileURLToPath(import.meta.url);
   if (mcpMode === 'docker') {
     const dockerArgs = ['run', '--rm', '-i', '--network=host', '-v', `${test.info().project.outputDir}:/app/test-results`];
     const transport = new StdioClientTransport({
@@ -202,7 +200,7 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode'], 
 
   const transport = new StdioClientTransport({
     command: 'node',
-    args: [path.join(path.dirname(__filename), '../cli.js'), ...args],
+    args: [path.join(__dirname, '../cli.js'), ...args],
     cwd: path.dirname(test.info().config.configFile!),
     stderr: 'pipe',
     env: {
@@ -211,6 +209,7 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode'], 
       DEBUG_COLORS: '0',
       DEBUG_HIDE_DATE: '1',
       PWMCP_PROFILES_DIR_FOR_TEST: profilesDir,
+      ...(extensionToken ? { PLAYWRIGHT_MCP_EXTENSION_TOKEN: extensionToken } : {}),
     },
   });
   return {

@@ -16,13 +16,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
-import { test as base, expect } from '../../tests/fixtures.js';
+import { test as base, expect } from '../../tests/fixtures';
 
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import type { BrowserContext } from 'playwright';
-import type { StartClient } from '../../tests/fixtures.js';
+import type { StartClient } from '../../tests/fixtures';
 
 type BrowserWithExtension = {
   userDataDir: string;
@@ -38,7 +37,7 @@ type TestFixtures = {
 
 const test = base.extend<TestFixtures>({
   pathToExtension: async ({}, use) => {
-    await use(fileURLToPath(new URL('../dist', import.meta.url)));
+    await use(path.resolve(__dirname, '../dist'));
   },
 
   browserWithExtension: async ({ mcpBrowser, pathToExtension }, use, testInfo) => {
@@ -126,7 +125,7 @@ async function startWithExtensionFlag(browserWithExtension: BrowserWithExtension
 const testWithOldExtensionVersion = test.extend({
   pathToExtension: async ({}, use, testInfo) => {
     const extensionDir = testInfo.outputPath('extension');
-    const oldPath = fileURLToPath(new URL('../dist', import.meta.url));
+    const oldPath = path.resolve(__dirname, '../dist');
 
     await fs.promises.cp(oldPath, extensionDir, { recursive: true });
     const manifestPath = path.join(extensionDir, 'manifest.json');
@@ -304,4 +303,34 @@ test(`custom executablePath`, async ({ startClient, server, useShortConnectionTi
     isError: true,
   });
   expect(await fs.promises.readFile(test.info().outputPath('output.txt'), 'utf8')).toContain('Custom exec args: chrome-extension://jakfalbnbhgkpmoaakfflhflbfpkailf/connect.html?');
+});
+
+test(`bypass connection dialog with token`, async ({ browserWithExtension, startClient, server }) => {
+  const browserContext = await browserWithExtension.launch();
+
+  const page = await browserContext.newPage();
+  await page.goto('chrome-extension://jakfalbnbhgkpmoaakfflhflbfpkailf/status.html');
+  const token = await page.locator('.auth-token-code').textContent();
+  const [name, value] = token?.split('=') || [];
+
+  const { client } = await startClient({
+    args: [`--extension`],
+    extensionToken: value,
+    config: {
+      browser: {
+        userDataDir: browserWithExtension.userDataDir,
+      }
+    },
+  });
+
+  const navigateResponse = await client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  });
+
+  expect(await navigateResponse).toHaveResponse({
+    pageState: expect.stringContaining(`- generic [active] [ref=e1]: Hello, world!`),
+  });
+
+
 });
