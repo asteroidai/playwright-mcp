@@ -15,52 +15,33 @@
  */
 
 import type * as playwright from 'playwright';
-import type {
-  ImageContent,
-  TextContent,
-} from '@modelcontextprotocol/sdk/types.js';
 import type { Tab } from './tab.js';
+import type { Config, ToolCapability } from './config.js';
+import type { Response } from './response.js';
+import type { z } from 'zod';
 
 /**
- * Tool capability types
+ * Re-export ToolCapability from config
  */
-export type ToolCapability =
-  | 'core'
-  | 'tabs'
-  | 'pdf'
-  | 'history'
-  | 'wait'
-  | 'files'
-  | 'install'
-  | 'testing';
+export type { ToolCapability } from './config.js';
 
 /**
- * Configuration for the MCP server
+ * Re-export Response from response
  */
-export type FullConfig = {
-  browser: {
-    browserAgent?: string;
+export type { Response } from './response.js';
+
+/**
+ * Full resolved configuration for the MCP server
+ */
+export type FullConfig = Config & {
+  browser: Omit<NonNullable<Config['browser']>, 'browserName'> & {
     browserName: 'chromium' | 'firefox' | 'webkit';
-    isolated?: boolean;
-    userDataDir?: string;
-    launchOptions?: playwright.LaunchOptions;
-    contextOptions?: playwright.BrowserContextOptions;
-    cdpEndpoint?: string;
-    remoteEndpoint?: string;
+    launchOptions: NonNullable<NonNullable<Config['browser']>['launchOptions']>;
+    contextOptions: NonNullable<NonNullable<Config['browser']>['contextOptions']>;
   };
-  server?: {
-    port?: number;
-    host?: string;
-  };
-  capabilities?: ToolCapability[];
-  vision?: boolean;
-  saveTrace?: boolean;
-  outputDir?: string;
-  network?: {
-    allowedOrigins?: string[];
-    blockedOrigins?: string[];
-  };
-  imageResponses?: 'allow' | 'omit' | 'auto';
+  network: NonNullable<Config['network']>;
+  saveTrace: boolean;
+  server: NonNullable<Config['server']>;
 };
 
 /**
@@ -81,28 +62,9 @@ export type DialogModalState = {
 export type ModalState = FileUploadModalState | DialogModalState;
 
 /**
- * Tool action result type
- */
-export type ToolActionResult =
-  | { content?: (ImageContent | TextContent)[] }
-  | undefined
-  | void;
-
-/**
- * Tool result type
- */
-export type ToolResult = {
-  code: string[];
-  action?: () => Promise<ToolActionResult>;
-  captureSnapshot: boolean;
-  waitForNetwork: boolean;
-  resultOverride?: ToolActionResult;
-};
-
-/**
  * Tool schema type
  */
-export type ToolSchema<Input = any> = {
+export type ToolSchema<Input extends z.Schema = z.Schema> = {
   name: string;
   title: string;
   description: string;
@@ -113,11 +75,10 @@ export type ToolSchema<Input = any> = {
 /**
  * Tool type definition
  */
-export type Tool<Input = any> = {
+export type Tool<Input extends z.Schema = z.Schema> = {
   capability: ToolCapability;
   schema: ToolSchema<Input>;
-  clearsModalState?: ModalState['type'];
-  handle: (context: Context, params: any) => Promise<ToolResult>;
+  handle: (context: Context, params: z.output<Input>, response: Response) => Promise<void>;
 };
 
 /**
@@ -126,24 +87,17 @@ export type Tool<Input = any> = {
 export type Context = {
   readonly tools: Tool[];
   readonly config: FullConfig;
-  clientVersion?: { name: string; version: string };
 
-  clientSupportsImages(): boolean;
-  modalStates(): ModalState[];
-  setModalState(modalState: ModalState, inTab: Tab): void;
-  clearModalState(modalState: ModalState): void;
-  modalStatesMarkdown(): string[];
   tabs(): Tab[];
+  currentTab(): Tab | undefined;
   currentTabOrDie(): Tab;
   newTab(): Promise<Tab>;
-  selectTab(index: number): Promise<void>;
+  selectTab(index: number): Promise<Tab>;
   ensureTab(): Promise<Tab>;
-  listTabsMarkdown(): Promise<string>;
   closeTab(index: number | undefined): Promise<string>;
-  run(
-    tool: Tool,
-    params: Record<string, unknown> | undefined
-  ): Promise<{ content: (ImageContent | TextContent)[] }>;
-  waitForTimeout(time: number): Promise<void>;
-  close(): Promise<void>;
+  outputFile(name: string): Promise<string>;
+  closeBrowserContext(): Promise<void>;
+  isRunningTool(): boolean;
+  setRunningTool(name: string | undefined): void;
+  dispose(): Promise<void>;
 };

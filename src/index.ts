@@ -26,6 +26,9 @@ import type { BrowserContext } from 'playwright';
 import type { BrowserContextFactory } from './browserContextFactory.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
+// Export Response class for external use
+export { Response } from './response.js';
+
 export interface Connection {
   server: Server;
   context: Context;
