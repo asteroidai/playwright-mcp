@@ -15,55 +15,51 @@
  */
 
 import type * as playwright from 'playwright';
+import type { ModalState } from './context.js';
+import type { Context } from './context.js';
 
 /**
- * Page snapshot type definition
+ * Console message type
  */
-export type PageSnapshot = {
-  text(): string;
-  refLocator(params: { element: string; ref: string }): playwright.Locator;
+export type ConsoleMessage = {
+  type: ReturnType<playwright.ConsoleMessage['type']> | undefined;
+  text: string;
+  toString(): string;
 };
 
 /**
- * Context type definition (forward reference to avoid circular dependency)
+ * Tab snapshot type
  */
-export type Context = {
-  readonly tools: any[];
-  readonly config: any;
-  clientVersion?: { name: string; version: string };
-
-  clientSupportsImages(): boolean;
-  modalStates(): any[];
-  setModalState(modalState: any, inTab: Tab): void;
-  clearModalState(modalState: any): void;
-  modalStatesMarkdown(): string[];
-  tabs(): Tab[];
-  currentTabOrDie(): Tab;
-  newTab(): Promise<Tab>;
-  selectTab(index: number): Promise<void>;
-  ensureTab(): Promise<Tab>;
-  listTabsMarkdown(): Promise<string>;
-  closeTab(index: number | undefined): Promise<string>;
-  run(tool: any, params: Record<string, unknown> | undefined): Promise<any>;
-  waitForTimeout(time: number): Promise<void>;
-  close(): Promise<void>;
+export type TabSnapshot = {
+  url: string;
+  title: string;
+  ariaSnapshot: string;
+  modalStates: ModalState[];
+  consoleMessages: ConsoleMessage[];
+  downloads: { download: playwright.Download; finished: boolean; outputFile: string }[];
 };
 
 /**
  * Tab class type definition
  */
 export type Tab = {
-  context: Context;
-  page: playwright.Page;
-  title(): Promise<string>;
-  waitForLoadState(
-    state: 'load',
-    options?: { timeout?: number }
-  ): Promise<void>;
+  readonly context: Context;
+  readonly page: playwright.Page;
+
+  modalStates(): ModalState[];
+  setModalState(modalState: ModalState): void;
+  clearModalState(modalState: ModalState): void;
+  modalStatesMarkdown(): string[];
+  updateTitle(): Promise<void>;
+  lastTitle(): string;
+  isCurrentTab(): boolean;
+  waitForLoadState(state: 'load', options?: { timeout?: number }): Promise<void>;
   navigate(url: string): Promise<void>;
-  hasSnapshot(): boolean;
-  snapshotOrDie(): PageSnapshot;
-  consoleMessages(): playwright.ConsoleMessage[];
+  consoleMessages(): ConsoleMessage[];
   requests(): Map<playwright.Request, playwright.Response | null>;
-  captureSnapshot(): Promise<void>;
+  captureSnapshot(): Promise<TabSnapshot>;
+  refLocator(params: { element: string; ref: string }): Promise<playwright.Locator>;
+  refLocators(params: { element: string; ref: string }[]): Promise<playwright.Locator[]>;
+  waitForTimeout(time: number): Promise<void>;
+  waitForCompletion(callback: () => Promise<void>): Promise<void>;
 };

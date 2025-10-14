@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Context } from './context.js';
+import type { Context } from './context.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { Config } from './config.js';
 import type { BrowserContext } from 'playwright';
@@ -26,4 +26,30 @@ export interface Connection {
 }
 
 export declare function createConnection(config?: Config, contextGetter?: () => Promise<BrowserContext>): Promise<Connection>;
+
+// Export Response class
+export { Response } from './response.js';
+
+// Re-export types from context.d.ts
+export type {
+  Context,
+  Tool,
+  ToolCapability,
+  ToolSchema,
+  ModalState,
+  FileUploadModalState,
+  DialogModalState,
+  FullConfig,
+} from './context.js';
+
+// Re-export types from tab.d.ts
+export type {
+  Tab,
+  TabSnapshot,
+  ConsoleMessage,
+} from './tab.js';
+
+// Re-export Config type
+export type { Config } from './config.js';
+
 export {};
