@@ -38,6 +38,31 @@ First, install the Playwright MCP server with your client.
 
 [<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)
 
+<details>
+<summary>Amp</summary>
+
+Add via the Amp VS Code extension settings screen or by updating your settings.json file:
+
+```json
+"amp.mcpServers": {
+  "playwright": {
+    "command": "npx",
+    "args": [
+      "@playwright/mcp@latest"
+    ]
+  }
+}
+```
+
+**Amp CLI Setup:**
+
+Add via the `amp mcp add`command below
+
+```bash
+amp mcp add playwright -- npx @playwright/mcp@latest
+```
+
+</details>
 
 <details>
 <summary>Claude Code</summary>
@@ -59,7 +84,13 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
 <details>
 <summary>Codex</summary>
 
-Create or edit the configuration file `~/.codex/config.toml` and add:
+Use the Codex CLI to add the Playwright MCP server:
+
+```bash
+codex mcp add playwright npx "@playwright/mcp@latest"
+```
+
+Alternatively, create or edit the configuration file `~/.codex/config.toml` and add:
 
 ```toml
 [mcp_servers.playwright]
@@ -101,6 +132,25 @@ Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/
 #### Or install manually:
 
 Go to `Advanced settings` -> `Extensions` -> `Add custom extension`. Name to your liking, use type `STDIO`, and set the `command` to `npx @playwright/mcp`. Click "Add Extension".
+</details>
+
+<details>
+<summary>Kiro</summary>
+
+Follow the MCP Servers [documentation](https://kiro.dev/docs/mcp/). For example in `.kiro/settings/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}
+```
 </details>
 
 <details>
@@ -166,6 +216,27 @@ After installation, the Playwright MCP server will be available for use with you
 </details>
 
 <details>
+<summary>Warp</summary>
+
+Go to `Settings` -> `AI` -> `Manage MCP Servers` -> `+ Add` to [add an MCP Server](https://docs.warp.dev/knowledge-and-collaboration/mcp#adding-an-mcp-server). Use the standard config above.
+
+Alternatively, use the slash command `/add-mcp` in the Warp prompt and paste the standard config from above:
+```js
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
 <summary>Windsurf</summary>
 
 Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use the standard config above.
@@ -183,7 +254,7 @@ Playwright MCP server supports following arguments. They can be provided in the 
   --allowed-hosts <hosts...>            comma-separated list of hosts this
                                         server is allowed to serve from.
                                         Defaults to the host the server is bound
-                                        to.
+                                        to. Pass '*' to disable the host check.
   --allowed-origins <origins>           semicolon-separated list of origins to
                                         allow the browser to request. Default is
                                         to allow all.
@@ -254,6 +325,8 @@ Playwright MCP server supports following arguments. They can be provided in the 
                                         all connected HTTP clients.
   --storage-state <path>                path to the storage state file for
                                         isolated sessions.
+  --test-id-attribute <attribute>       specify the attribute to use for test
+                                        ids, defaults to "data-testid"
   --timeout-action <timeout>            specify action timeout in milliseconds,
                                         defaults to 5000ms
   --timeout-navigation <timeout>        specify navigation timeout in
@@ -502,14 +575,15 @@ http.createServer(async (req, res) => {
   - Title: Close browser
   - Description: Close the page
   - Parameters: None
-  - Read-only: **true**
+  - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_console_messages**
   - Title: Get console messages
   - Description: Returns all console messages
-  - Parameters: None
+  - Parameters:
+    - `onlyErrors` (boolean, optional): Only return error messages
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -571,7 +645,7 @@ http.createServer(async (req, res) => {
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
-  - Read-only: **true**
+  - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
@@ -588,7 +662,7 @@ http.createServer(async (req, res) => {
   - Title: Go back
   - Description: Go back to the previous page
   - Parameters: None
-  - Read-only: **true**
+  - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
@@ -615,7 +689,7 @@ http.createServer(async (req, res) => {
   - Parameters:
     - `width` (number): Width of the browser window
     - `height` (number): Height of the browser window
-  - Read-only: **true**
+  - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
@@ -643,7 +717,7 @@ http.createServer(async (req, res) => {
   - Description: Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.
   - Parameters:
     - `type` (string, optional): Image format for the screenshot. Default is png.
-    - `filename` (string, optional): File name to save the screenshot to. Defaults to `page-{timestamp}.{png|jpeg}` if not specified.
+    - `filename` (string, optional): File name to save the screenshot to. Defaults to `page-{timestamp}.{png|jpeg}` if not specified. Prefer relative file names to stay within the output directory.
     - `element` (string, optional): Human-readable element description used to obtain permission to screenshot the element. If not provided, the screenshot will be taken of viewport. If element is provided, ref must be provided too.
     - `ref` (string, optional): Exact target element reference from the page snapshot. If not provided, the screenshot will be taken of viewport. If ref is provided, element must be provided too.
     - `fullPage` (boolean, optional): When true, takes a screenshot of the full scrollable page, instead of the currently visible viewport. Cannot be used with element screenshots.
@@ -671,7 +745,7 @@ http.createServer(async (req, res) => {
     - `time` (number, optional): The time to wait in seconds
     - `text` (string, optional): The text to wait for
     - `textGone` (string, optional): The text to wait for to disappear
-  - Read-only: **true**
+  - Read-only: **false**
 
 </details>
 
@@ -739,7 +813,7 @@ http.createServer(async (req, res) => {
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `x` (number): X coordinate
     - `y` (number): Y coordinate
-  - Read-only: **true**
+  - Read-only: **false**
 
 </details>
 
@@ -752,13 +826,65 @@ http.createServer(async (req, res) => {
   - Title: Save as PDF
   - Description: Save page as PDF
   - Parameters:
-    - `filename` (string, optional): File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified.
+    - `filename` (string, optional): File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified. Prefer relative file names to stay within the output directory.
   - Read-only: **true**
 
 </details>
 
 <details>
-<summary><b>Verify (opt-in via --caps=verify)</b></summary>
+<summary><b>Test assertions (opt-in via --caps=testing)</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_generate_locator**
+  - Title: Create locator for element
+  - Description: Generate locator for the given element to use in tests
+  - Parameters:
+    - `element` (string): Human-readable element description used to obtain permission to interact with the element
+    - `ref` (string): Exact target element reference from the page snapshot
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_verify_element_visible**
+  - Title: Verify element visible
+  - Description: Verify element is visible on the page
+  - Parameters:
+    - `role` (string): ROLE of the element. Can be found in the snapshot like this: `- {ROLE} "Accessible Name":`
+    - `accessibleName` (string): ACCESSIBLE_NAME of the element. Can be found in the snapshot like this: `- role "{ACCESSIBLE_NAME}"`
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_verify_list_visible**
+  - Title: Verify list visible
+  - Description: Verify list is visible on the page
+  - Parameters:
+    - `element` (string): Human-readable list description
+    - `ref` (string): Exact target element reference that points to the list
+    - `items` (array): Items to verify
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_verify_text_visible**
+  - Title: Verify text visible
+  - Description: Verify text is visible on the page. Prefer browser_verify_element_visible if possible.
+  - Parameters:
+    - `text` (string): TEXT to verify. Can be found in the snapshot like this: `- role "Accessible Name": {TEXT}` or like this: `- text: {TEXT}`
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_verify_value**
+  - Title: Verify value
+  - Description: Verify element value
+  - Parameters:
+    - `type` (string): Type of the element
+    - `element` (string): Human-readable element description
+    - `ref` (string): Exact target element reference that points to the element
+    - `value` (string): Value to verify. For checkbox, use "true" or "false".
+  - Read-only: **false**
 
 </details>
 

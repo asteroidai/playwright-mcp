@@ -1,6 +1,6 @@
 {
   "name": "@playwright/mcp",
-  "version": "0.0.40",
+  "version": "0.0.45",
   "description": "Playwright Tools for MCP",
   "repository": {
     "type": "git",
@@ -18,6 +18,8 @@
     "lint": "npm run update-readme",
     "update-readme": "node update-readme.js",
     "docker-build": "docker build --no-cache -t playwright-mcp-dev:latest .",
+    "docker-rm": "docker rm playwright-mcp-dev",
+    "docker-run": "docker run -it -p 8080:8080 --name playwright-mcp-dev playwright-mcp-dev:latest",
     "test": "playwright test",
     "ctest": "playwright test --project=chrome",
     "ftest": "playwright test --project=firefox",
@@ -35,15 +37,15 @@
     }
   },
   "dependencies": {
-    "playwright": "1.56.0-alpha-1758750661000",
-    "playwright-core": "1.56.0-alpha-1758750661000"
+    "playwright": "1.57.0-alpha-1761929702000",
+    "playwright-core": "1.57.0-alpha-1761929702000"
   },
   "bin": {
     "mcp-server-playwright": "cli.js"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "@playwright/test": "1.56.0-alpha-1758750661000",
+    "@playwright/test": "1.57.0-alpha-1761929702000",
     "@types/node": "^24.3.0",
     "zod-to-json-schema": "^3.24.6"
   }
