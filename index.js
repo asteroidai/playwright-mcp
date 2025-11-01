@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { createConnection, Response } from './lib/index.js';
+export { createConnection, Response, StateManager } from './lib/index.js';

@@ -98,8 +98,17 @@ export class Context {
 
   async ensureTab(): Promise<Tab> {
     const { browserContext } = await this._ensureBrowserContext();
-    if (!this._currentTab)
-      await browserContext.newPage();
+    if (!this._currentTab) {
+      try {
+        await browserContext.newPage();
+      } catch (error) {
+        // Re-throw with consistent error message for upstream retry logic
+        if (error instanceof Error && error.message.includes('closed'))
+          throw new Error('Target page, context or browser has been closed');
+
+        throw error;
+      }
+    }
     return this._currentTab!;
   }
 
@@ -114,6 +123,58 @@ export class Context {
 
   async outputFile(name: string): Promise<string> {
     return outputFile(this.config, this._clientInfo.rootPath, name);
+  }
+
+  /**
+   * Hydrates tab state from serialized state.
+   * Matches existing tabs (discovered from browser pages) with stored tab state
+   * and restores console messages and titles.
+   *
+   * @param serializedTabs - Array of serialized tab states to restore
+   * @param currentTabIndex - Index of the tab that should be current
+   * @param maxTabsToHydrate - Optional maximum number of tabs to hydrate. If provided,
+   *                         only the first N tabs will be hydrated, ignoring extras.
+   *                         This is useful for stateless pools where extra pages may exist
+   *                         but should not be restored.
+   */
+  async hydrateTabState(
+    serializedTabs: Array<{
+      url: string;
+      title: string;
+      index: number;
+      recentConsoleMessages: any[];
+    }>,
+    currentTabIndex: number,
+    maxTabsToHydrate?: number
+  ): Promise<void> {
+    // Determine how many tabs we should hydrate
+    // If maxTabsToHydrate is provided, limit to that number (for stateless pools)
+    // Otherwise, hydrate up to the minimum of existing tabs and stored tabs
+    const tabsToHydrate = maxTabsToHydrate !== undefined && maxTabsToHydrate > 0
+      ? Math.min(this._tabs.length, serializedTabs.length, maxTabsToHydrate)
+      : Math.min(this._tabs.length, serializedTabs.length);
+
+    // Match existing tabs with stored state by index (tabs are in discovery order)
+    // Only hydrate tabs up to the limit to avoid touching extra discovered pages
+    for (let i = 0; i < tabsToHydrate; i++) {
+      const tab = this._tabs[i];
+      const storedTab = serializedTabs.find(st => st.index === i);
+
+      if (storedTab) {
+        // Restore console messages and title for this tab
+        tab.restoreState(storedTab.recentConsoleMessages, storedTab.title);
+      }
+    }
+
+    // Set current tab based on stored index (only if it's within hydrated range)
+    // Note: We trust that the browser already has the correct tab focused in its own state,
+    // so we don't need to call bringToFront() - we just need to set our _currentTab to match.
+    if (currentTabIndex >= 0 && currentTabIndex < tabsToHydrate && currentTabIndex < this._tabs.length) {
+      this._currentTab = this._tabs[currentTabIndex];
+    } else if (tabsToHydrate > 0 && !this._currentTab) {
+      // If stored index is invalid but we have tabs, use first hydrated tab
+      this._currentTab = this._tabs[0];
+    }
   }
 
   private async _onPageCreated(page: playwright.Page) {
@@ -339,6 +400,12 @@ export class Context {
     // TODO: move to the browser context factory to make it based on isolation mode.
     const result = await this._browserContextFactory.createContext(this._clientInfo, this._abortController.signal, this._runningToolName);
     const { browserContext } = result;
+
+    // CRITICAL FIX: Clear cache when context closes to prevent stale context reuse
+    browserContext.on('close', () => {
+      this._browserContextPromise = undefined;
+    });
+
     await this._setupRequestInterception(browserContext);
     if (this.sessionLog)
       await InputRecorder.create(this, browserContext);

@@ -148,6 +148,16 @@ export class Tab extends EventEmitter<TabEventsInterface> {
     return this._lastTitle;
   }
 
+  /**
+   * Restores console messages and title from serialized state.
+   * Used during state hydration to restore in-memory tab state.
+   */
+  restoreState(consoleMessages: ConsoleMessage[], title: string): void {
+    this._consoleMessages = [...consoleMessages];
+    this._recentConsoleMessages = [...consoleMessages];
+    this._lastTitle = title;
+  }
+
   isCurrentTab(): boolean {
     return this === this.context.currentTab();
   }

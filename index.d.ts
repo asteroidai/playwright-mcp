@@ -25,10 +25,13 @@ export interface Connection {
   context: Context;
 }
 
-export declare function createConnection(config?: Config, contextGetter?: () => Promise<BrowserContext>): Promise<Connection>;
+export declare function createConnection(config?: Config, contextGetter?: () => Promise<BrowserContext>, options?: { keepContextAlive?: boolean }): Promise<Connection>;
 
 // Export Response class
 export { Response } from './response.js';
+
+// Export StateManager and SerializedState for stateless proxy implementations
+export { StateManager, type SerializedState } from './stateManager.js';
 
 // Re-export types from context.d.ts
 export type {
